@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/networkservicemesh/networkservicemesh/sdk/client"
+	"github.com/networkservicemesh/networkservicemesh/utils"
 )
 
 type patchOperation struct {
@@ -42,6 +45,24 @@ func createDNSPatch(tuple *podSpecAndMeta, annotationValue string, imposeLimits 
 				"networkservicemesh.io/socket": resource.MustParse("1"),
 			},
 		},
+	}
+
+	dnsMonitorImage := utils.EnvVar(dnsMonitorImageEnv).GetStringOrDefault("")
+	if dnsMonitorImage != "" {
+		nsmDNSMonitorContainer.Image = dnsMonitorImage
+
+		dnsMonitorCmd := utils.EnvVar(dnsMonitorCommandEnv).GetStringOrDefault("")
+		if dnsMonitorCmd != "" {
+			nsmDNSMonitorContainer.Command = strings.Fields(dnsMonitorCmd)
+		}
+	}
+
+	dnsPeersAsHosts := utils.EnvVar(dnsPeersAsHostsEnv).GetBooleanOrDefault(false)
+	if dnsPeersAsHosts {
+		nsmDNSMonitorContainer.Env = append(nsmDNSMonitorContainer.Env, corev1.EnvVar{
+			Name:  dnsPeersAsHostsEnv,
+			Value: strconv.FormatBool(dnsPeersAsHosts),
+		})
 	}
 
 	corednsContainer := corev1.Container{
