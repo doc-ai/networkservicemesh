@@ -77,10 +77,11 @@ func main() {
 		if len(ServerIPsEnv.GetStringListValueOrDefault("")) == 1 && ServerIPsEnv.GetStringListValueOrDefault("")[0] == "" {
 			endpoints = append(endpoints, endpoint.NewAddDnsConfigDstIp(SearchDomainsEnv.GetStringListValueOrDefault("icmp.app")...))
 		} else {
-			endpoint.NewAddDNSConfigs(&connectioncontext.DNSConfig{
+			dnsConfigEndpoint := endpoint.NewAddDNSConfigs(&connectioncontext.DNSConfig{
 				DnsServerIps:  ServerIPsEnv.GetStringListValueOrDefault(""),
 				SearchDomains: SearchDomainsEnv.GetStringListValueOrDefault("icmp.app"),
 			})
+			endpoints = append(endpoints, dnsConfigEndpoint)
 		}
 	}
 
